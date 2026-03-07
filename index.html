@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor PDF | Professional PDF Suite</title>
+    
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- PERMANENT PREMIUM INTERFACE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #f3f5f8; color: #333; overflow-x: hidden; }
+
+        .main-header {
+            background: #ffffff; display: flex; justify-content: space-between;
+            align-items: center; padding: 15px 8%; box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { font-size: 26px; font-weight: 700; text-decoration: none; color: #333; cursor: pointer; }
+        .logo span { color: #e5322d; }
+        
+        #menu-toggle { display: none; }
+        .hamburger-icon { font-size: 24px; cursor: pointer; color: #333; }
+        .nav-menu {
+            position: fixed; top: 0; right: -100%; width: 280px; height: 100vh;
+            background: #fff; flex-direction: column; padding: 80px 20px 20px 20px;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: 0.4s ease; display: flex; z-index: 999;
+        }
+        #menu-toggle:checked ~ .nav-menu { right: 0; }
+        .nav-menu a { text-decoration: none; color: #444; font-weight: 500; padding: 15px; border-bottom: 1px solid #f1f1f1; }
+
+        /* Sections Control */
+        .section { display: none; padding: 0; animation: fadeIn 0.4s ease; }
+        .active-section { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Home Grid */
+        .hero { text-align: center; padding: 80px 20px; background: #fff; }
+        .hero h2 { font-size: 36px; margin-bottom: 10px; }
+        .hero p { color: #666; font-size: 18px; }
+
+        .tools-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 25px; max-width: 1200px; margin: -40px auto 60px auto; padding: 0 20px; 
+        }
+        .tool-card {
+            background: #fff; padding: 45px 25px; border-radius: 15px; text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer;
+            border-bottom: 5px solid transparent; text-decoration: none; color: inherit;
+        }
+        .tool-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .tool-icon { font-size: 50px; margin-bottom: 20px; }
+
+        /* Color Themes */
+        .merge-card { border-color: #e5322d; } .merge-card i { color: #e5322d; }
+        .split-card { border-color: #47a14b; } .split-card i { color: #47a14b; }
+        .compress-card { border-color: #1e88e5; } .compress-card i { color: #1e88e5; }
+        .word-card { border-color: #2196f3; } .word-card i { color: #2196f3; }
+        .jpg-card { border-color: #fb8c00; } .jpg-card i { color: #fb8c00; }
+        .protect-card { border-color: #673ab7; } .protect-card i { color: #673ab7; }
+
+        /* Tool Wrapper */
+        .tool-wrapper { max-width: 800px; margin: 40px auto; padding: 40px; background: #fff; border-radius: 20px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+        .back-btn { display: inline-block; margin-bottom: 20px; color: #e5322d; cursor: pointer; font-weight: 600; text-decoration: none; }
+        
+        .upload-box { 
+            border: 2px dashed #ccc; padding: 50px 20px; border-radius: 15px; 
+            background: #fcfcfc; cursor: pointer; margin: 20px 0; display: block;
+        }
+        .upload-box:hover { border-color: #e5322d; background: #fffafa; }
+        input[type="file"] { display: none; }
+
+        .btn-main { color: #fff; border: none; padding: 18px; font-size: 18px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 20px; }
+        .file-row { background: #f8f9fa; padding: 12px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; }
+
+        /* Success Message Box */
+        .success-box {
+            display: none; background: #e8f5e9; color: #2e7d32; padding: 15px;
+            border-radius: 10px; margin-top: 20px; border-left: 5px solid #4caf50; font-weight: 600;
+        }
+        .loader { display: none; margin-top: 20px; color: #e5322d; font-weight: bold; }
+
+        footer { text-align: center; padding: 50px; color: #999; }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo" onclick="showSection('home-section')">Editor<span>PDF</span></div>
+        <input type="checkbox" id="menu-toggle">
+        <label for="menu-toggle" class="hamburger-icon"><i class="fa-solid fa-bars"></i></label>
+        <nav class="nav-menu">
+            <a href="#" onclick="closeMenu(); showSection('home-section')">Home</a>
+            <a href="#" onclick="closeMenu(); showSection('merge-section')">Merge PDF</a>
+            <a href="#" onclick="closeMenu(); showSection('split-section')">Split PDF</a>
+            <a href="#" onclick="closeMenu(); showSection('compress-section')">Compress PDF</a>
+            <a href="#" onclick="closeMenu(); showSection('word-section')">PDF to Word</a>
+            <a href="#" onclick="closeMenu(); showSection('jpg-section')">PDF to JPG</a>
+            <a href="#" onclick="closeMenu(); showSection('protect-section')">Protect PDF</a>
+        </nav>
+    </header>
+
+    <div id="home-section" class="section active-section">
+        <section class="hero">
+            <h2>Every tool you need to work with PDFs</h2>
+            <p>100% Free, Secure and Professional.</p>
+        </section>
+        <div class="tools-grid">
+            <div class="tool-card merge-card" onclick="showSection('merge-section')">
+                <i class="fa-solid fa-layer-group tool-icon"></i>
+                <h3>Merge PDF</h3><p>Combine multiple PDFs into one document easily.</p>
+            </div>
+            <div class="tool-card split-card" onclick="showSection('split-section')">
+                <i class="fa-solid fa-scissors tool-icon"></i>
+                <h3>Split PDF</h3><p>Separate pages or sets from a PDF file.</p>
+            </div>
+            <div class="tool-card compress-card" onclick="showSection('compress-section')">
+                <i class="fa-solid fa-file-contract tool-icon"></i>
+                <h3>Compress PDF</h3><p>Optimize and reduce PDF file size.</p>
+            </div>
+            <div class="tool-card word-card" onclick="showSection('word-section')">
+                <i class="fa-solid fa-file-word tool-icon"></i>
+                <h3>PDF to Word</h3><p>Convert PDF to editable Word document.</p>
+            </div>
+            <div class="tool-card jpg-card" onclick="showSection('jpg-section')">
+                <i class="fa-solid fa-image tool-icon"></i>
+                <h3>PDF to JPG</h3><p>Convert each PDF page into a high-quality JPG.</p>
+            </div>
+            <div class="tool-card protect-card" onclick="showSection('protect-section')">
+                <i class="fa-solid fa-lock tool-icon"></i>
+                <h3>Protect PDF</h3><p>Encrypt your PDF with a strong password.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="merge-section" class="section">
+        <div class="tool-wrapper">
+            <span class="back-btn" onclick="showSection('home-section')">← Back to Tools</span>
+            <h2>Merge PDF files</h2>
+            <label for="merge-input" class="upload-box"><i class="fa-solid fa-plus-circle" style="font-size: 50px; color: #e5322d;"></i><p>Select multiple PDFs to merge</p></label>
+            <input type="file" id="merge-input" accept="application/pdf" multiple>
+            <div id="merge-list" class="file-display"></div>
+            <button id="merge-btn" class="btn-main" style="background:#e5322d; display:none;">MERGE PDF NOW</button>
+            <div id="merge-success" class="success-box">PDF Merge Successfully!</div>
+        </div>
+    </div>
+
+    <div id="split-section" class="section">
+        <div class="tool-wrapper">
+            <span class="back-btn" style="color:#47a14b" onclick="showSection('home-section')">← Back to Tools</span>
+            <h2>Split PDF file</h2>
+            <label for="split-input" class="upload-box" style="border-color:#47a14b"><i class="fa-solid fa-scissors" style="font-size: 50px; color: #47a14b;"></i><p>Select PDF file</p></label>
+            <input type="file" id="split-input" accept="application/pdf">
+            <div id="split-info" class="file-display"></div>
+            <div id="split-controls" style="display:none; margin-top:20px;">
+                Range: <input type="number" id="p-from" value="1" style="width:60px;"> to <input type="number" id="p-to" value="1" style="width:60px;">
+                <button id="split-btn" class="btn-main" style="background:#47a14b">SPLIT PDF NOW</button>
+            </div>
+            <div id="split-success" class="success-box">PDF Split Successfully!</div>
+        </div>
+    </div>
+
+    <div id="compress-section" class="section">
+        <div class="tool-wrapper">
+            <span class="back-btn" style="color:#1e88e5" onclick="showSection('home-section')">← Back to Tools</span>
+            <h2>Compress PDF</h2>
+            <label for="compress-input" class="upload-box" style="border-color:#1e88e5"><i class="fa-solid fa-file-contract" style="font-size: 50px; color: #1e88e5;"></i><p>Select PDF for high compression</p></label>
+            <input type="file" id="compress-input" accept="application/pdf">
+            <div id="compress-info" class="file-display"></div>
+            <button id="compress-btn" class="btn-main" style="background:#1e88e5; display:none;">COMPRESS PDF NOW</button>
+            <div id="compress-loader" class="loader">Optimizing Pages... Please wait.</div>
+            <div id="compress-success" class="success-box">PDF Compressed Successfully!</div>
+        </div>
+    </div>
+
+    <div id="word-section" class="section">
+        <div class="tool-wrapper">
+            <span class="back-btn" style="color:#2196f3" onclick="showSection('home-section')">← Back to Tools</span>
+            <h2>PDF to Word</h2>
+            <label for="word-input" class="upload-box" style="border-color:#2196f3"><i class="fa-solid fa-file-word" style="font-size: 50px; color: #2196f3;"></i><p>Select PDF to convert to Word</p></label>
+            <input type="file" id="word-input" accept="application/pdf">
+            <div id="word-info" class="file-display"></div>
+            <button id="word-btn" class="btn-main" style="background:#2196f3; display:none;">CONVERT TO WORD</button>
+            <div id="word-loader" class="loader">Extracting Text...</div>
+            <div id="word-success" class="success-box">PDF Converted Successfully!</div>
+        </div>
+    </div>
+
+    <div id="jpg-section" class="section">
+        <div class="tool-wrapper">
+            <span class="back-btn" style="color:#fb8c00" onclick="showSection('home-section')">← Back to Tools</span>
+            <h2>PDF to JPG</h2>
+            <label for="jpg-input" class="upload-box" style="border-color:#fb8c00"><i class="fa-solid fa-image" style="font-size: 50px; color: #fb8c00;"></i><p>Select PDF to convert</p></label>
+            <input type="file" id="jpg-input" accept="application/pdf">
+            <div id="jpg-success" class="success-box" style="margin-bottom:20px;">Images Converted Successfully!</div>
+            <div id="jpg-preview" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;"></div>
+        </div>
+    </div>
+
+    <div id="protect-section" class="section">
+        <div class="tool-wrapper">
+            <span class="back-btn" style="color:#673ab7" onclick="showSection('home-section')">← Back to Tools</span>
+            <h2>Protect PDF</h2>
+            <label for="protect-input" class="upload-box" style="border-color:#673ab7"><i class="fa-solid fa-lock" style="font-size: 50px; color: #673ab7;"></i><p>Select PDF to lock</p></label>
+            <input type="file" id="protect-input" accept="application/pdf">
+            <div id="protect-form" style="display:none; margin-top:15px;">
+                <input type="password" id="pdf-pass" placeholder="Set PDF Password" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
+                <button id="protect-btn" class="btn-main" style="background:#673ab7">PROTECT PDF NOW</button>
+            </div>
+            <div id="protect-success" class="success-box">PDF Locked Successfully!</div>
+        </div>
+    </div>
+
+    <footer>© 2026 Editor PDF | Build by Mohammad Shaban</footer>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active-section'));
+            document.querySelectorAll('.success-box, .loader').forEach(b => b.style.display = 'none');
+            document.getElementById(id).classList.add('active-section');
+            window.scrollTo(0,0);
+        }
+        function closeMenu() { document.getElementById('menu-toggle').checked = false; }
+        const download = (b, n, type = "application/pdf") => {
+            const blob = new Blob([b], {type: type});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = n; a.click();
+        };
+
+        // --- MERGE ---
+        let mergeFiles = [];
+        document.getElementById('merge-input').onchange = (e) => {
+            Array.from(e.target.files).forEach(f => { if(f.type==="application/pdf") mergeFiles.push(f); });
+            document.getElementById('merge-list').innerHTML = mergeFiles.map((f, i) => `<div class="file-row"><span>${f.name}</span><i class="fa-solid fa-trash" style="color:red;cursor:pointer" onclick="mergeFiles.splice(${i},1);document.getElementById('merge-input').dispatchEvent(new Event('change'))"></i></div>`).join('');
+            document.getElementById('merge-btn').style.display = mergeFiles.length >= 2 ? "block" : "none";
+        };
+        document.getElementById('merge-btn').onclick = async () => {
+            const merged = await PDFLib.PDFDocument.create();
+            for(const f of mergeFiles) {
+                const doc = await PDFLib.PDFDocument.load(await f.arrayBuffer());
+                const pages = await merged.copyPages(doc, doc.getPageIndices());
+                pages.forEach(p => merged.addPage(p));
+            }
+            download(await merged.save(), "Merged_EditorPDF.pdf");
+            document.getElementById('merge-success').style.display = 'block';
+        };
+
+        // --- SPLIT ---
+        let splitF = null;
+        document.getElementById('split-input').onchange = async (e) => {
+            splitF = e.target.files[0];
+            if(!splitF) return;
+            const doc = await PDFLib.PDFDocument.load(await splitF.arrayBuffer());
+            document.getElementById('split-info').innerHTML = `<div class="file-row">${splitF.name} (${doc.getPageCount()} Pages)</div>`;
+            document.getElementById('p-to').value = doc.getPageCount();
+            document.getElementById('split-controls').style.display = "block";
+        };
+        document.getElementById('split-btn').onclick = async () => {
+            const from = parseInt(document.getElementById('p-from').value)-1;
+            const to = parseInt(document.getElementById('p-to').value)-1;
+            const doc = await PDFLib.PDFDocument.load(await splitF.arrayBuffer());
+            const newDoc = await PDFLib.PDFDocument.create();
+            const indices = Array.from({length:to-from+1},(_,i)=>i+from);
+            const pages = await newDoc.copyPages(doc, indices);
+            pages.forEach(p=>newDoc.addPage(p));
+            download(await newDoc.save(), "Split_EditorPDF.pdf");
+            document.getElementById('split-success').style.display = 'block';
+        };
+
+        // --- COMPRESS (HIGH COMPRESSION) ---
+        let cFile = null;
+        document.getElementById('compress-input').onchange = (e) => {
+            cFile = e.target.files[0];
+            if(cFile) {
+                document.getElementById('compress-info').innerHTML = `<div class="file-row"><span>${cFile.name}</span></div>`;
+                document.getElementById('compress-btn').style.display = "block";
+            }
+        };
+        document.getElementById('compress-btn').onclick = async () => {
+            document.getElementById('compress-loader').style.display = "block";
+            const pdf = await pdfjsLib.getDocument(await cFile.arrayBuffer()).promise;
+            const outDoc = await PDFLib.PDFDocument.create();
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const vp = page.getViewport({ scale: 1.2 });
+                const canvas = document.createElement('canvas');
+                canvas.height = vp.height; canvas.width = vp.width;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+                const img = await outDoc.embedJpg(canvas.toDataURL('image/jpeg', 0.5));
+                const p = outDoc.addPage([vp.width, vp.height]);
+                p.drawImage(img, { x: 0, y: 0, width: vp.width, height: vp.height });
+            }
+            download(await outDoc.save(), "Compressed_EditorPDF.pdf");
+            document.getElementById('compress-loader').style.display = "none";
+            document.getElementById('compress-success').style.display = "block";
+        };
+
+        // --- WORD ---
+        let wFile = null;
+        document.getElementById('word-input').onchange = (e) => {
+            wFile = e.target.files[0];
+            if(wFile) {
+                document.getElementById('word-info').innerHTML = `<div class="file-row"><span>${wFile.name}</span></div>`;
+                document.getElementById('word-btn').style.display = "block";
+            }
+        };
+        document.getElementById('word-btn').onclick = async () => {
+            document.getElementById('word-loader').style.display = "block";
+            const pdf = await pdfjsLib.getDocument(await wFile.arrayBuffer()).promise;
+            let fullText = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                fullText += textContent.items.map(item => item.str).join(" ") + "\n\n";
+            }
+            const wordContent = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>${fullText.replace(/\n/g, '<br>')}</body></html>`;
+            download(wordContent, "Converted.doc", "application/msword");
+            document.getElementById('word-loader').style.display = "none";
+            document.getElementById('word-success').style.display = "block";
+        };
+
+        // --- JPG ---
+        document.getElementById('jpg-input').onchange = async (e) => {
+            const f = e.target.files[0];
+            const pdf = await pdfjsLib.getDocument(await f.arrayBuffer()).promise;
+            const preview = document.getElementById('jpg-preview');
+            preview.innerHTML = "Processing...";
+            for(let i=1; i<=pdf.numPages; i++){
+                const page = await pdf.getPage(i);
+                const canvas = document.createElement('canvas');
+                const vp = page.getViewport({scale:1.0});
+                canvas.height = vp.height; canvas.width = vp.width;
+                await page.render({canvasContext: canvas.getContext('2d'), viewport: vp}).promise;
+                const img = canvas.toDataURL('image/jpeg');
+                if(i===1) preview.innerHTML = "";
+                preview.innerHTML += `<a href="${img}" download="Page_${i}.jpg"><img src="${img}" style="width:120px; border:1px solid #ddd; margin:5px; border-radius:5px;"></a>`;
+            }
+            document.getElementById('jpg-success').style.display = 'block';
+        };
+
+        // --- PROTECT ---
+        let pFile = null;
+        document.getElementById('protect-input').onchange = (e) => {
+            pFile = e.target.files[0];
+            if(pFile) document.getElementById('protect-form').style.display = "block";
+        };
+        document.getElementById('protect-btn').onclick = async () => {
+            const pass = document.getElementById('pdf-pass').value;
+            const doc = await PDFLib.PDFDocument.load(await pFile.arrayBuffer());
+            const encrypted = await doc.save({
+                userPassword: pass, ownerPassword: pass,
+                permissions: { printing: 'none', copying: false, modifying: false }
+            });
+            download(encrypted, "Locked.pdf");
+            document.getElementById('protect-success').style.display = 'block';
+        };
+    </script>
+</body>
+</html>
